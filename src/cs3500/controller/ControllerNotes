@@ -1,0 +1,69 @@
+1. Building controller
+2. Build listeners for the features interfaces to connect components
+to build playable, complete game
+Features:
+3. Move (putDisc - enter after you click, do the "illegalMove" dialogue)
+4. Pass ("p" or "s"
+5. view should have ability to add listeners for the action
+
+6. Model should tell players it's their turns -> playerPiece moves -> tell next playerPiece to move
+   so we need to separate the two steps of notifying players of their turn
+7. Each playerPiece should have their own controller
+8. Features interface: putDisc, pass
+   What the model can publish that interests the playerPiece
+   "it's your turn" can come in any time
+   Design a features interface for the model and augment it w/ ability to add listeners
+   for those events
+   Controller subscribes itself as a listener for both features interfcaces since it coordinates
+    b/t
+   model and view, needs to know when view has chosen something and when the model notifies that
+   currentplayer changes
+9. Be careful: model notifies playerPiece when it's their turn, so be careful that very first
+ playerPiece gets notified
+so all players/playerPiece controllers are registered as listeners before first "it's your turn"
+ notication is sent.
+So we need start game to distinguish b/t setting stuff up and actually playing the game
+
+10. Machine players need a strategy (make it a field) to ccompute next view
+Players-actions interface - what can a playerPiece do?
+Human players wait for person to interact with view to choose next move
+1. views can show playerPiece-action events, controller is the listener for the events
+   machine also shows playerPiece-action events - controller registers as a listener,
+   so it controls both machine and human players
+2. human-playerPiece implementation should be capable of emmitting events, but it will never since
+the relevant events for the playerPiece is emitted by the view for the playerPiece
+
+Controller implementation:
+1. takes in a playerPiece implementation + view
+2. Needs to register itself as a listener of playerPiece actions
+from the view and playerPiece it controls (EITHER WILL EMIT ACTIONS, NOT BOTH)
+3. Controller ensures playerPiece can only take action when it's that playerPiece's turn
+4. Controller registers itself as a listenr for events from the model, informed when active
+playerPiece changes
+5. controller ensures view stays up to date, even if the playerPiece is a machine and doesn't
+interact w/ view directly
+(look at toggleColor)
+6. Controller handles exception and makes visible to user. use showMessageDialog
+
+Running:
+ Now, we need to create two views,
+ one for each playerPiece — and we need to create two players and two controllers, as well.
+
+Need string args that describes playerPiece and the strategies
+"human", "strategy1"
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Think about:
+GamePigeon's version of simulating -> have "ghost pieces" that flip over for the simulation
+The human playerPiece can choose a legal move and see how many discs that would
+flip before "committing"
+to the move by pressing the "enter" key
+
+If time takes over a minute -> have a pop-up that says choose a move
+
+or pass button, the choose a move button would pick one of the legal moves at
+random or use a strategy...
+
+Also i am thinking about doing a readin file such that the customer can scan in their preferred key
+for example, if they want "s" instead of "p", they can do so by scanning it in like on the exam

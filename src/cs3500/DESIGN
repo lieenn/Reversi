@@ -1,0 +1,29 @@
+Our plans on implementing a Player interface with an AI
+- Make playerPiece interface: one real playerPiece, one ai playerPiece, both have move method
+- Separate the model into two different interfaces and classes: readOnlyModel and ReversiModel
+    - readOnlyModel would only have non-mutator methods and will be given to the Player
+    to prevent the Player from changing the state of the board
+    - ReversiModel would implements readOnlyModel + mutator methods and only given to the controller
+- Player would have access to the readOnlyModel (to view) and the controller (to play)
+    - readOnlyModel and Controller can be fields of players
+    - AIPlayer would use the methods in readOnlyModel to determine the state of the game,
+    and make a move by passing a command in the controller
+        - There would be some game strategy algorithms implemented for this
+        - Number of algorithm used can be depended on the difficulty of the AI
+    - HumanPlayer can enter a command via keyboard
+
+AI: how i could instantiate players and mode
+  so i can play few moves of game: find all legal
+  tiles that a playerPiece has and do a for loop that iterates
+  over these tiles and have an accumulator, discsSnatched
+  that sees how many tiles have been taken. Then, I could make an
+  AI model like this
+
+AI playerPiece
+- enables several possible scenarios
+- design model so that different playerPiece implementations
+  could exist for humans or machines to play game
+  playerPiece interface should do this
+- how i could instantiate players and mode
+  so i can play few moves of game: find all legal
+  tiles in a...

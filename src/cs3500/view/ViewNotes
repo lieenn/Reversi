@@ -1,0 +1,90 @@
+We build visual view and computer strategies
+
+Question: does creating the board mutate the game? It's not an observation method,
+
+1. Views should not have ability to mutate models
+2. Already have ReversiModel extends ReadOnly (only observation methods)
+
+Functionality:
+Model Setup:
+- ability to create board of given size
+- ability to create copy of board - players need board - gives copy of board - prevents cheating
+  (look at strategy) (could be getCopy, getBoard) -> copy of the board
+
+Observations:
+- contents of cell at given coordinate (yes, getPlayerAt)
+- legal for current playerPiece to play at given coordinate (yes, isMoveLegal)
+- current score: (getPlayerNum)
+- does current playerPiece have any legal moves (we should abstract the method into doesPlayerHave Move
+- isGameOver (technically we have isGameContinuing)
+
+Operations:
+- playerPiece moves
+- playerPiece passes
+
+We have to document changes in a new section of README called "Changes for part 2" that
+-explains what functionality was missing, why, and how you chose to add it
+
+
+
+
+
+
+
+
+
+
+Visualizing:
+
+- Java Swing (look at MVC code and Turtles and Lab 7)
+- look up documentation on Graphics class
+- cast Graphics objects to Graphics2D objects
+- look at transform methods in Graphics2D to render canvas
+
+- Maybe we have multiple views
+1. describes what the frame is capable of
+2. describes what the panel should be capable of
+3. no need to make our textual view implement the new GUI view interface
+- maybe we can do a choco-strawberry color palette?
+- looking at Graphics2D class -> find methods for drawing text/lines/ovals/img/shapes
+- to transform coord system (scale, translate, rotate)
+- build a subclass of Path2D.Double that represents a standard hexagon (sim to HexagonImage in javalib)
+
+Implementation
+- View takes in ROReversiModel so that view doesn't mutate model once
+- controller should make view be able to handle clicks
+- on-click -> highlight
+- view should (temporarily) print message (with sout) w/ logical coords of the cell that was clicked
+  on for coordinate system used in model (q, r) NOT the physical mouse coords
+- thinking about using (not from notes
+
+- view should allow user to unselect the cell by
+1. clicking on cell again
+2. clicking on another cell (which selects that cell)
+3. clicks outside of boundary (SHOULD NOT CRASH, THROW, OR BREAK)
+
+Blue: the view knows the user has selected
+-listener so view responds to event
+
+
+- view should allow user to indicate that they want to move in a cell or pass by handling
+  keyboard input
+- we can choose by saying that in README
+(I am thinking about using enter to move in the disc and "s" to skip)
+
+
+Testing view: we should have at least three screenshots: start of game, with cell selected,
+non-trivial intermediate point
+
+
+
+
+
+
+
+
+
+
+
+
+

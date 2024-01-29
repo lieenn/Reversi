@@ -1,0 +1,27 @@
+1. In ROReversi, we implemented getBoard, which returns a copy of the board (so we don't mutate
+   the copy that's laid out in front of us. It's just an observation. We have tested this.
+
+
+2. Implemented a private method that return true if the current playerPiece has no legal moves
+   (based on assignment 6 requirements). It is in ROReversi. We made it private since
+   getLegalMoves implies noLegalMoves.
+
+3. getRadius that returns the radius of the board for convenience since we need
+   it for the view. This is tested.
+
+4. isPlayersTurn(Player playerPiece) that returns true if it is the give playerPiece's turn.
+This is tested.
+
+
+5. Added a new version of getPlayerAt that takes in a hexagon with cubed coordinates.
+This is tested.
+
+6. Added a new version of putDisc that takes in a hexagon with cubed coordinates. This is tested.
+
+7. Changed private method validateHexagon to isValidHexagon so that it would return a boolean
+(previously returned an array of int).
+
+8. Added a mock model to test the strategies. This can be found in the test folder for model.
+
+9. Override toString in Hexagon so whenever we print out a hexagon
+it would prints the hexagons in cube coordinates

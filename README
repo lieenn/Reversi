@@ -1,0 +1,581 @@
+
+Sections of README:
+
+Part 1: Purpose and how to play, overview of Reversi
+Part 2: Source organization. Be sure to read this part.
+Part 3: An example game. A full, complete game.
+Part 4: Incorporated documents that our previous versions had (Changes to Part X)
+Part 5: Updated Changes to Part 4 (so that our code works with the provider's code)
+Part 6: Explaining which features we implemented and which files were affected
+___________________________________________________________________________________________________
+___________________________________________________________________________________________________
+
+Part 1:
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+The purpose of the codebase is to create Reversi with the properties as follows:
+- 2 playerPiece game
+- will have a graphical interface.
+- The board is a big hexagon made of hexagons.
+
+The rules of the game are that:
+- Reversi is a 2-playerPiece game
+- each playerPiece has a color (if they are O, the disc's side that is white is theirs,
+  (if they are X, the disc's side that is black is theirs)
+- game piece are discs colored black on one side and white on other
+- Player Black goes first
+- A Player can pass, which implies that they let other playerPiece move
+- Players can only select legal (legality is explained below) cells to move their disc to
+
+What is a Legal Move?
+- Playing disc is adjacent to a straight line of Player B's
+  discs and at the far end is another Player A (there will be a sandwich from the current playing
+  disc to the far end)
+- Result of legal move: all of playerPiece B's discs in all directions that are
+  sandwiched b/t two discs of playerPiece A are switched to Player A
+- Possible that playerPiece A has two discs and has empty cell between
+  when playerPiece B plays that cell implies that we turn all those discs to B's side
+- If the playerPiece has no legal moves, they must pass
+- If both players pass in the row, the game ends.
+
+src:
+cs3500 package: consists of the following packages or documents.
+The reason why we named it cs3500 is because we are enrolled in this class.
+
+Model:
+- Uses cube coordinate system for hexagons (location of all cells)
+- Enforces how to let players make moves
+- Enforces rules of game
+- Makes sure players take turns
+- Makes sure moves that are legal
+- Makes the discs flipped
+- Winner of game can be determined
+- Checks if the game is over
+
+Controller: The controller is a PlayerActionListener and a ModelStatusListener.
+It listens for events from the model and the view and updates each according
+to those events using the observer pattern.
+        Players: A package inside of controller for organization purposes. A player
+        Interface is for such that human or AI players can interact with the model.
+        An abstract player implementation that delegates most of its complexity
+        to a strategy for choosing where to play next.
+
+Strategy:
+- different strategies that a player of the game may use. Players can be either AI Players
+or human players. Implementations of this interface define
+specific rules or algorithms for selecting a hexagon based
+on the given game model and player information.
+
+TextView:
+- Maps out the hexagon map of the discs on the board
+- _ for Empty cells, X for Player X, O for Player O
+
+View:
+- displays the GUI of the game
+- Handles the presentation of the game state and user interactions. Gets information from
+controller.
+
+Reversi (the one with the main):
+- Runs Reversi and the user can click on the board to alternate colors if they so wish. They
+  can also play the board game, if they wish. They must choose two players first,
+  they can be one of "human", "strategy1", "strategy2", "strategy3", and "strategy4".
+  Note that strategy4 is arguable the hardest one to play against.
+
+
+Extra Documents:
+README: you guessed it... what you read before diving into the code
+DESIGN: Our initial design for the AI Player, created before we even started the assignment.
+
+___________________________________________________________________________________________________
+
+Part 2:
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Controller:
+
+ControllerNotes: Notes we have made to ensure that we work on the controller a little more than
+the view for part 3 of the assignment.
+
+ModelStatusListener: Listener for the model status, which is the status of the game,
+as in whose turn it is and the game status, i.e. if the game is over or not.
+
+PlayerActionListener: Interface for handling player actions in the Reversi game.
+Respond to user interactions from the view and communicate with the model accordingly.
+
+ReversiController: The controller is a PlayerActionListener and a ModelStatusListener.
+It listens for events from the model and the view and updates each according to those
+events using the observer pattern. Implements ModelStatusListener and PlayerActionListener.
+
+players package:
+
+IPlayer: a player Interface such that human or AI players can interact with the model.
+Delegates most of its complexity to a strategy for choosing where to play next (hexagon).
+
+AbstractPlayer: Abstract player for the game, methods are shared between
+the AIPlayer and the HumanPlayer. Directly implements IPlayer
+
+AIPlayer: The AI Player that will be playing against the player in solitaire mode, or another
+AI Player if the player would like a pleasurable viewing experience of two AI Players
+battling it out. The AI player will be making decisions to make moves against the other player.
+
+HumanPlayer: A player that can click on the board and select a hexagon, and enter that
+selected hexagon.
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Model:
+ROModel(read-only version of the model) - has methods that will not change the game. We
+have observation methods.
+
+MutableModel (the full version of the model) - has methods that will change the game.
+ReversiModel is the model with both read and write configurations. It is able to be mutated
+with many methods.
+
+ROReversi (implementation of the ROModel) -
+A Reversi that only has read only permissions. We can only observe the state
+of the model, not mutate it. Can't be tested on its own because the game has to start
+first before the playerPiece use these methods but this class does not have startGame.
+
+BasicReversi (implementation of Mutable Model)
+Basic Reversi is a traditional game of Reversi played on a board of hexagons.
+Each disc that is played on the Reversi board will be placed on a hexagon of this board.
+
+Hexagon (cube coordinate system of the game) The coordinates of this system uses q, r, s, and the
+ The center of this coordinate system is new Hexagon(0,0,0).
+ In the models, we also convert from cube coordinates to axial coordinates with the equation
+ Cube -> Axial: (q - radius, r - radius). s is not relevant in the axial coordinate system.
+ We can find the coordinate of the cube coordinate
+ system with getCoord("coordinate") with coordianate being one of "q" "r" "s".
+
+ModelStatus:
+The notifier for the controller to alert it that it is a player's turn or if a game is over or
+not so that the controller does not have to keep pressuring the model for an answer.
+
+PlayerPiece:
+The Player enum represents the participants in the Reversi game,
+including X (Black), O (Red), and EMPTY. Each player, X and O,
+signifies a colored disc on the Reversi board, while EMPTY
+represents an unoccupied space (a disc does not exist there yet).
+
+ Changes for part 2:
+ Documentation of what we have changed in the model for the second part of the assignment
+ while we were implementing the view that uses JSwing.
+
+ Changes for part 3:
+ Documentation of what we have changed in the model for the third part of the assignment
+ while we were implementing more features for the view that uses JSwing, updating parts of the
+ model to include listeners, and making controllers and the main.
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Strategy:
+IMoveStrategy:
+Represents a strategy for choosing a hexagon in a game according to specific rules or algorithms.
+
+AMoveStrategy: Abstract base class for move strategies in the reversi.
+Provides common functionality and structure for concrete move strategy implementations, like
+updating the legal moves.
+
+UserChoiceListener: Handle user interactions in the Reversi game.
+Responds to user clicks, choices, and passes in the Reversi game view.
+
+1. FindMostTopLeftMove
+Finding the top-left most move. This is done by checking the biggest s coordinate.
+If the s coordinate is equal, we check the smaller of the r coordinates.
+All the coordinates are unique, so we do not have to check for q. If there are no legal moves,
+then the model will automatically pass the current playerPiece. Mainly used for testing purposes.
+
+2. CaptureAsManyPieces
+Strategy to capture as many pieces as possible.
+If the number of pieces that will be captured is equal for multiple coordinates (hexagons)
+then we look at the top most move (we delegate to FindMostTopLeftMove)
+
+3. AvoidNextToCorner: The strategy that avoids the spaces that surround the corner
+(if the spaces are neighboring hexagons of the corner, we avoid that).
+Since if your pieces are close to the corner, your opponent has the
+chance to flip all the pieces from that corner, giving them an advantage.
+
+4. GoToCorner: Finding the corner move. This is done by
+checking the corners and finding the venn diagram of the corners
+and the legal moves of the player. We check 3 cases for the results of a venn diagrams.
+(either it has it or not).
+
+5. PromptUser: Allows a user to interact with the Reversi game by choosing a move. Connects
+the user's choices in the view and the game controller.
+the player making a move, the view getting the move from the user, and then
+telling this strategy about the user's choice.
+The chosen Hexagon is then stored and can be accessed via chooseHexagon.
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+TextView:
+Interface for Reversi Textual View that will render the game in String format.
+
+ReversiTextualView
+ Textual rendering of model, so we can visualize the data
+Comments that TA should use code to produce visualization.
+Using the visualization:
+ TextView view = new ReversiTextualView(model);
+ either do
+ view.toString()
+ or
+ System.out.println(view);
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+View:
+Hexagon Tile:
+Constructs a HexagonTile with the specified color, coordinates, size,
+and the model.
+
+PointXY:
+ Represents a point in a 2-D Cartesian coordinate system with integer coordinates (x, y).
+ We can initialize a point with specified x and y coordinates, get individual coordinates,
+ and can combine points to combine two points. We use this class to draw points on the window.
+
+
+Reversi Frame
+Attaches everything from the panel to the caption to the game. Implements ReversiView
+
+ReversiPanel
+represents the graphical user interface for the Reversi game board.
+It provides a visual representation of the game state and handles user interactions w/ clicks and
+key clicks.
+
+
+ReversiView: Interface for the GUI of Reversi.
+It displays the Reversi game's graphical user interface.
+Handles the presentation of the game state and user interactions. Extends PlayerAction.
+
+PlayerAction Interface: The player-action interface that consists of methods
+that only players can do.
+Handles user input, such as placing a disc, passing a turn,and responding to
+player clicks on the game board.
+
+ViewNotes: Our thought process on designing the view.
+
+
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Reversi (main)
+Runs Reversi and the user can click on the board to alternate colors if they so wish. They
+can also play the board game, if they wish. They must choose two players first,
+they can be one of "human", "strategy1", "strategy2", "strategy3", and "strategy4".
+Note that strategy4 is arguable the hardest one to play against.
+
+
+Please note that when an AIPlayer decides to pass,
+the IPlayer notifies the controller about its intention to pass.
+The controller then instructs the view to display a popup on the screen,
+indicating that the AIPlayer wishes to pass.
+
+It's important to mention that in the event that a player has no legal moves,
+the system keeps track of this and automatically initiates a pass for the currentPlayer's turn.
+In such cases, a popup will appear on the screen, notifying the player that they are required to
+pass the game. To proceed with the game, the actual (a real human)
+user must click 'okay' on the popups.
+
+The reason why we implemented pass like this is because of GamePigeon. In GamePigeon,
+the game automatically passes for you so that the game goes faster due to lack of trading moves.
+We were very inspired by GamePigeon's use of highlighted legal moves, and decided to implement
+that for a very user-friendly experience.
+
+
+___________________________________________________________________________________________________
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Part 3: A full game. With the command line:
+
+You must put in two 
+
+
+
+
+
+    // initialize the model that you want to use (to test running the game)
+    MutableModel model = new BasicReversi();
+    // create the board first
+    board3 = model.makeBoard(3);
+    // the radius is size 3
+    model.startGame(board);
+    // start the game with the board you initialize
+
+    // should be true when the game starts
+    assertEquals(model.isGameContinuing(), true);
+    // we can put discs where ever there is a legal move
+    model.putDisc(5, 2);
+    model.putDisc(4, 1);
+    // should be true throughout the game
+    assertEquals(model.isGameContinuing(), true);
+    model.putDisc(2, 2);
+    model.putDisc(1, 4);
+    model.putDisc(2, 5);
+    model.putDisc(6, 2);
+    model.putDisc(5, 0);
+    model.putDisc(1, 6);
+    model.putDisc(2, 6);
+    model.putDisc(1, 2);
+    model.putDisc(6, 1);
+    model.putDisc(4, 4);
+    assertEquals(model.isGameContinuing(), true);
+    model.putDisc(4, 5);
+    model.putDisc(5, 4);
+    model.putDisc(2, 1);
+    model.putDisc(6, 0);
+    model.putDisc(0, 5);
+    model.putDisc(3, 6);
+    model.putDisc(0, 3);
+    assertEquals(model.isGameContinuing(), true);
+    model.putDisc(0, 4);
+    model.putDisc(0, 6);
+    assertEquals(model.isGameContinuing(), true);
+    model.putDisc(4, 0);
+    // find out the legal moves after that move
+    assertEquals(model.isGameContinuing(), false);
+    assertEquals(model.getWinner(), Player.O);
+
+
+
+
+  }
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Part 4:
+
+
+  Changes for Part 2
+  1. In ROReversi, we implemented getBoard, which returns a copy of the board (so we don't mutate
+     the copy that's laid out in front of us. It's just an observation. We have tested this.
+
+
+  2. Implemented a private method that return true if the current playerPiece has no legal moves
+     (based on assignment 6 requirements). It is in ROReversi. We made it private since
+     getLegalMoves implies noLegalMoves.
+
+  3. getRadius that returns the radius of the board for convenience since we need
+     it for the view. This is tested.
+
+  4. isPlayersTurn(Player playerPiece) that returns true if it is the give playerPiece's turn.
+  This is tested.
+
+
+  5. Added a new version of getPlayerAt that takes in a hexagon with cubed coordinates.
+  This is tested.
+
+  6. Added a new version of putDisc that takes in a hexagon with cubed coordinates. This is tested.
+
+  7. Changed private method validateHexagon to isValidHexagon so that it would return a boolean
+  (previously returned an array of int).
+
+  8. Added a mock model to test the strategies. This can be found in the test folder for model.
+
+  9. Override toString in Hexagon so whenever we print out a hexagon
+  it would prints the hexagons in cube coordinates
+
+  Changes for part 3
+  - Override toString in HexagonTile
+  - Override equals() in HexagonTile
+  - Add a new Abstract IPlayer Class
+  - Add different listeners: ModelStatusListeners and PlayerActionListeners
+      - Controller implements both interfaces
+  - Add two new interfaces: ModelStatus and PlayerAction
+      - Model implements ModelStatus
+      - View implements PlayerAction
+      - Controller listens to both model and view
+  - Removed Controller Interface, changed the constructor for the controller
+  - Add a new method to player Interface
+      - changed the name of a method: playROModel -> pertainHexagon
+  - Add a UserChoiceListener interface that listens to the user click on the panel
+      - Add a new strategy specifically for HumanPlayer, implements UserChoiceListeners, that
+      listens to the panel and tells the view what the user clicks
+  - Add a new keyListener in the panel that takes in 'enter' and 'p' of the keyboard
+  - Add user instructions and game status in the view so the user would know when it's their turn
+  - When its the user's turn, the view would notify the user that's its their turn and highlights
+  the legals moves that the users can choose from.
+  - Wrote some tests for Controller
+  - Add a command line in main
+
+  NOTE: When an AIPlayer passes, the IPlayer communicates with the controller that it would like to
+  pass, then the controllers tells the view that the player wants to pass and there would be a popup
+  on the screen saying that the AIPlayer would like to pass.
+
+  NOTE: When the player has no legal moves, the model would keep track of that and automatically
+  pass the currentPlayer's turn, there would be a popup on the screen telling the player that they
+  are forced to pass the game.
+
+  In both cases, the actual user would have to click okay on the popup to continue the game
+
+___________________________________________________________________________________________________
+
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Changes for part 4:
+  - Made two different packages in src: provider and customer, our codes is in customer and the
+  provider's code is in provider.
+
+  - Changed getBoard to getBoardDonar in ROModel, this is because our code and the provider's code
+  both have getBoard so we renamed it for easier differentiation
+
+  - Added a new method to get the hashmap of the hexagons:PlayerPiece on the board.
+
+  - Changed ReversiFrame to ReversiWindow in ROModel, this is because our code and the provider's
+  code both have ReversiFrame so we renamed it for easier differentiation
+
+  - Added four main types of adapters:
+      - ModelAdapter: 2 classes, 1 for adapting the ReadOnlyModels and 1 for adapting MutableModels
+      - ControllerAdapter: 1 class, adapting their controller with our controller, used for
+      Model and View
+      - ViewAdapter: 1 class, adapting their view to our view, used to interact with the controller
+      - StrategyAdapter: 1 interface, 1 abstract class, 4 concrete classes
+            - HumanStrategy: used to for human player, listens to the clicks on the screen, then
+            communicate it to the controller, and the controller would update the model accordingly
+            - AbstractStrategy: abstract class for all the strategies
+                - Takes in an ROModel and a number representing a playerType.
+                    - If playerType is 1, return our version of the strategy
+                    - If playerType is 2, return the provider's version of the strategy
+            - StrategyOne: adapter for capture as many pieces as possible strategy
+            - StrategyTwo: adapter for avoid next to corners strategy
+            - StrategyThree: adapter for go to corners strategy
+
+  - How to play the game: click on a hexagon to select a hexagon on the board, press 'enter' to put
+    a disc on the hexagon, press 'p' to pass your turn to another player
+  - Command line instructions: takes in 2 inputs representing player1 and player2
+    - Possible inputs include:
+        - human: representing a real human user interacting with the screen
+        - strategy1, strategy2, strategy3: represents a AI playing the game using our version of
+            the strategies, corresponding with the StrategyAdapter classes above
+        - providerStrategy1, providerStrategy: represents a AI playing the game using provider's
+            version of of the strategies, corresponding with the StrategyAdapter classes above
+
+   NOTE: Player1 would always have our version of the view, Player2 would always have the provider's
+   version of the view. Unfortunately, the provider's view does not take in key inputs but you can
+   still run Human vs AI or AI vs AI games.
+
+
+___________________________________________________________________________________________________
+___________________________________________________________________________________________________
+
+   Part 6:
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+- we parameterized the Model, View, Strategies, Players, and Controller.
+- we wrote very detailed tests for all packages
+
+Model:
+We parameterized the model. We changed it such that instead of using a Hexagon coordinate
+like in previous versions, we would be using a PShape instead (a Parameterized Shape).
+This makes it more convenient to use Squares in the model.
+1. IShape interface for convenience for parameterizing the model, common interface
+for Square and Hexagon, is parameterized by a PShape (a Parameterized Shape).
+2. Square that has similar methods to the Hexagon coordinates, implements the IShape
+3. ROSquareReversi is similar to ROReversi, which is a ROModel that is parameterized
+by a Square.
+4. SquareReversi is similar to BasicReversi, which is a MutableModel that is parameterized
+by a Square.
+
+
+TextView:
+1. We Made a ReversiSquareTextualView such that it makes a Square Board instead of a
+hexagonalBoard. It has a toString method similar to ReversiTextualView and implements
+TextView
+
+
+
+View:
+1. New parameterized abstract class for the HexagonPanel and SquarePanel called AReversiPanel
+2. New HintDecorator that extends the HexagonPanel that can take in 'h' keys to toggle on and off.
+When turned on HintDecorator would tell the player how many disc they would flip if they put their
+disc on that selected hexagon
+3. New parameterized ITile class that represent HexagonTile and SquareTile that extends JButtons
+4. Parameterized PlayerAction interface and ReversiView so that they can work with both Hexagon and
+Square IShape classes
+5. Make a new class SquareFrame that implements ReversiView<Square>
+6. Make a new class SquarePanel that extends AReversiPanel<Square>
+7. Changed ReversiPanel to HexagonPanel that extends AReversiPanel<Hexagon> for easy differentiation
+
+
+
+
+
+
+
+
+
+Strategy:
+
+Since our new model uses a square board, our strategies will still have the same idea,
+however, they will be implemented a bit differently due to the nature of the x, y coordinate
+system in the square system and the q, r, s coordinate system in the hexagon system. Thus,
+we decided to implement the same interface as the strategies for the hexagonal board.
+
+IMoveStrategy (before) -> IMoveStrategy<Hexagon> (after), IMoveStrategy<Square>
+
+We correlated our hexagonal strategies to the square strategies.
+
+AMoveStrategy imp. IMoveStrategy<Hexagon> -> ASquareMoveStrategy imp. IMoveStrategy<Square>
+Since Square strategies operate differently from the hexagonal strategies, we will
+be having different abstract class. One example of such difference is that
+the corners of the board, which depend on the radius or size of the board, will be different,
+as squares have 4 corners, whereas hexagons have 6 corners.
+
+1. FindMostTopLeftMove -> SquareStrat4
+SquareStrat1 finds the square coordinate closest to the top left Square(0, 0).
+
+2. CaptureAsManyPieces -> SquareStrat1
+SquareStrat2 finds the square coordinate that takes as many Pieces as possible. If there is a tie,
+then there will be a break where we find the FindMostTopLeftMove (SquareStrat1)
+
+3. AvoidNextToCorner -> SquareStrat2
+SquareStrat3 finds the square coordinate that avoid the squares that are next the to corner
+since if your pieces are close to the corner, your opponent has the chance to flip all the pieces
+from that corner, giving them an advantage. If there is a tie, the break would be finding
+the most pieces captured (SquareStrat2)
+
+4. GoToCorner -> SquareStrat3
+SquareStrat4 finds the square coordinate that would go to the corner since going to the corner
+implies that the opponent can't flip the pieces around that corner.
+
+5. PromptUser -> SquareStratHuman
+Allows a user to interact with the Reversi game by choosing a move. Connects
+the user's choices in the view and the game controller.
+The steps involve the controller notifying the player that it's their turn,
+the player making a move, the view getting the move from the user, and then
+telling this strategy about the user's choice.
+The chosen Square is then stored and can be accessed via chooseSquare.
+
+
+Controller:
+Players:
+We made IPlayer also parameterized to take in either a Hexagon or Square.
+Then, we made AbstractSquarePlayer implement IPlayer<Square> and AbstractPlayer implement
+IPlayer<Hexagon>. We then implemented the methods for the resulting AISquarePlayer and the
+HumanSquarePlayer.
+
+ReversiSquareController:
+A ReversiSquareController takes in a model, player, and a view. Players may have
+different strategies, especially if they are different types of players (i.e., HumanPlayer
+or AIPlayer). We made PlayerActionListener parameterized; PlayerActionListener<PShape>,
+and ReversiController implements PlayerActionListener<Hexagon> and ModelStatusListener
+and ReversiSquareController implements PlayerActionListener<Square> and ModelStatusListener.
+
+
+
+Main (ReversiT):
+
+
+ How to play the game: click on a hexagon to select a hexagon on the board, press 'enter' to put
+    a disc on the hexagon, press 'p' to pass your turn to another player.
+
+    *** Takes in 3 inputs for the command line: [gameMode] [firstStrategy] [secondStrategy] ***
+      + valid command for [gameMode]: hexagon, square, hintMode
+      + valid command for [firstStrategy] [secondStrategy]:
+            human, strategy1, strategy2, strategy3, strategy4
+        - note: human represents actual user interacting with the mouse and keyboard
+                strategy1, strategy2, strategy3 represents an AIPlayer
+          AIPlayer Strategies:
+            ~ strategy1: capture as many pieces as possible strategy + strategy4
+            ~ strategy2: avoid next to corners strategy + strategy1
+            ~ strategy3: go to corners strategy + strategy1 + strategy2
+            ~ strategy4: go to top left strategy (just for fun)
+
+      NOTE: If you are playing hexagon board, you may press 'h' to toggle hints on or off.
